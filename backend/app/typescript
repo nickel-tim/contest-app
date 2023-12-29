@@ -1,0 +1,9 @@
+Script started on 2023-12-29 08:56:25+00:00 [TERM="xterm" TTY="/dev/pts/0" COLUMNS="246" LINES="16"]
+# ^C
+# ^C
+# ^C
+# quit
+sh: 1: quit: not found
+# exit
+
+Script done on 2023-12-29 08:56:33+00:00 [COMMAND_EXIT_CODE="127"]
