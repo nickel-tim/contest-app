@@ -58,13 +58,12 @@ async def get_valid_scores(
     return scores
 
 
-@router.get("/{scoreid}", response_model=schemas.Score)
+@router.get("/get_one/{scoreId}", response_model=schemas.Score)
 async def get_score(
-    scoreid: UUID,
+    scoreId: UUID,
     # admin_user: models.User = Depends(get_current_active_superuser)
 ):
-
-    score = await models.Score.find_one({"uuid": scoreid})
+    score = await models.Score.find_one({"uuid": scoreId})
     if score is None:
         raise HTTPException(status_code=404, detail="Score not found")
     return score
@@ -100,9 +99,8 @@ async def use_code(
 ):
     scores = await models.Score.find_one({ "uuid": scoreId })
     if not scores.is_active:
-        raise HTTPException(
-            status_code=400, detail="Score has already been used."
-        )
+        scores.points = 0
+        return scores
     scores.is_active = False
     team_score = await models.TeamScore.find_one({ "eventId": str(scores.eventId) , "teamId": str(teamId)})
     team_score.score += scores.points

@@ -26,6 +26,12 @@ class TeamService {
       const response = await axios.delete(API_URL + `teams/${teamId}`)
       return response.data
     }
+
+    async searchTeam(teamName: string): Promise<Array<Team>> {
+      const response = await axios.get(API_URL + `teams/search/${teamName}`)
+      return response.data
+    }
+
   }
   
   export default new TeamService()

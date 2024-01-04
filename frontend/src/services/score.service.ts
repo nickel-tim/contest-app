@@ -21,8 +21,6 @@ class ScoreService {
     }
   
     async useCode(scoreId: string, teamId: string): Promise<Score> {
-      console.log('AAAAA', scoreId, teamId)
-
       const response = await axios.get(API_URL + `scores/use_code/`, {
         params: {
           scoreId: scoreId,
@@ -33,6 +31,11 @@ class ScoreService {
     }
   
   
+    async getScore(scoreId: string): Promise<Score> {
+      const response = await axios.get(API_URL + `scores/get_one/${scoreId}`)
+      return response.data
+    }
+
     async getScores(): Promise<Array<Score>> {
       const response = await axios.get(API_URL + 'scores')
       return response.data

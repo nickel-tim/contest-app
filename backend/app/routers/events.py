@@ -13,10 +13,11 @@ from .. import schemas, models
 router = APIRouter()
 
 
-@router.post("", response_model=schemas.Event)
+@router.post("/{event_name}", response_model=schemas.Event)
 async def register_event(
-    event_name: str = Body(None),
+    event_name: str,
 ):
+    print('REGISTER EVENT', event_name)
     """
     Register a new user.
     """

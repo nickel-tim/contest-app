@@ -9,6 +9,7 @@ import SSOLogin, { loader as ssoLoader } from './routes/sso.login'
 import Users, { loader as usersLoader } from './routes/users'
 import Events from './routes/events'
 import EventProfile from './routes/event_profile'
+import RedeemCode from './routes/redeem_code'
 
 
 export const routes = [
@@ -47,6 +48,10 @@ export const routes = [
       {
         path: 'event_profile',
         element: <EventProfile />,
+      },
+      {
+        path: 'redeem_code',
+        element: <RedeemCode />,
       },
     ],
   },

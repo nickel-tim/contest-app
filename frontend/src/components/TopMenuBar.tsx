@@ -56,7 +56,13 @@ export default function TopMenuBar() {
           </Box>
         )}
 
-        {user !== undefined && user.is_superuser && (
+        {user !== undefined &&(
+        <Button component={NavLink} to='/redeem_code' sx={{ color: '#fff' }}>
+          Redeem Code
+        </Button>
+        )}
+
+        {user !== undefined &&  (
           <Button component={NavLink} to='/events' sx={{ color: '#fff' }}>
             Events
           </Button>

@@ -1,7 +1,8 @@
 from typing import List, Optional, Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException, Body, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pymongo import errors
 from beanie.exceptions import RevisionIdWasChanged
 
@@ -109,3 +110,15 @@ async def delete_team(
     team = await models.Team.find_one({"uuid": teamid})
     await team.delete()
     return team
+
+
+
+
+@router.get("/search/{team_name}", response_model=List[schemas.Team])
+async def search_teams(team_name: str):
+    print('IN SERACH', team_name)
+    teams_data = await get_teams()
+    print('IN SERACH ALL', teams_data)
+
+    filtered_teams = [team for team in teams_data if team_name.lower() in team.team_name.lower()]
+    return filtered_teams

@@ -24,20 +24,26 @@ import {
 
 } from '@mui/material'
 
+import { NavLink, useNavigate } from 'react-router-dom'
+
+
 import { useEffect, useState } from 'react'
 import eventService from '../services/event.service'
 import teamScoreService from '../services/team_score.service'
 import teamService from '../services/team.service'
 import scoreService from '../services/score.service'
+import { useAuth } from '../contexts/auth'
+import { ApexChart } from '../components/ApexChart'
+import { TeamSearch } from '../components/TeamSearch'
+
 
 export default function EventProfile() {
   const [activeEvent, setActiveEvent] = useState([]);
   const [teamScores, setTeamScores] = useState([]);
   const [inputScore, setInputScore] = useState('');
-  const [redemptionCode, setRedemptionCode] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState('');
   const [qrCodeData, setQrCodeData] = useState('');
   const [openQrCodeDialog, setOpenQrCodeDialog] = useState(false);
+  const { user } = useAuth()
 
   const formatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 });
 
@@ -63,10 +69,7 @@ export default function EventProfile() {
         })
       );
       
-      console.log('teamScoresWithDetail')
-      console.log(teamScoresWithDetails)
       setTeamScores(teamScoresWithDetails);
-      // setTeamScores(sortedTeamScores);
       setActiveEvent(event);
 
     } catch (error) {
@@ -94,7 +97,6 @@ export default function EventProfile() {
     try {
       // Trigger the service with the new score
       const response = await scoreService.createCode(activeEvent.uuid, newScore);
-      console.log(response)
         
       // Convert base64 to Blob
       const base64String = response.qr_code_base64.split(';base64,').pop();
@@ -129,23 +131,22 @@ export default function EventProfile() {
     }
   };
 
+  // useEffect(() => {
+  //   // Set the interval (in milliseconds) for the page reload
+  //   const reloadInterval = 50000; // Reload every 60 seconds
 
-  const handleRedemption = async () => {
-    try {
-      // Call your redemption function with redemptionCode and selectedTeam
-      // For demonstration purposes, this is just a placeholder alert
-      console.log(redemptionCode, selectedTeam )
-      const response = await scoreService.useCode(redemptionCode, selectedTeam);
-      await fetchEventInfo();
+  //   const reloadPage = () => {
+  //     if (!qrCodeData) {
+  //       window.location.reload();
+  //     }
+  //   };
 
-      alert(`Redemption Code: ${redemptionCode}, Selected Team: ${selectedTeam}`);
+  //   // Set up the interval to reload the page
+  //   const intervalId = setInterval(reloadPage, reloadInterval);
 
-    } catch (error) {
-      console.error('Error redeeming:', error);
-    }
-  };
-
-
+  //   // Clean up the interval when the component is unmounted
+  //   return () => clearInterval(intervalId);
+  // }, []);
 
 
   // Fetch teams on component mount
@@ -170,11 +171,7 @@ export default function EventProfile() {
             };
           })
         );
-        
-        console.log('teamScoresWithDetail')
-        console.log(teamScoresWithDetails)
         setTeamScores(teamScoresWithDetails);
-        // setTeamScores(sortedTeamScores);
         setActiveEvent(event);
 
       } catch (error) {
@@ -182,7 +179,19 @@ export default function EventProfile() {
       }
     }
     fetchEventInfo();
-  }, []);
+  }, [])
+
+  const handleTeamSelection = (selectedTeam:string) => {
+    teamScoreService.registerTeamScore(selectedTeam, activeEvent.uuid)
+    window.location.reload()
+  };
+
+
+  const chartData = {
+    categories: teamScores.map((team_score) => team_score.teamDetails.team_name),
+    points: teamScores.map((team_score) => team_score.score),
+    
+  };
 
   return (
     <main>
@@ -205,18 +214,7 @@ export default function EventProfile() {
           </Typography>
           <Divider />
         </Box>
-        <Box>
-        <TextField 
-          label="Create Score Code"
-          variant="outlined"
-          type="number"
-          value={inputScore}
-          onChange={(e) => setInputScore(e.target.value)}
-        />
-        <Button variant="contained" onClick={createNewScoreCode}>
-          Submit Score
-        </Button>
-        </Box>
+
         <Dialog open={openQrCodeDialog} onClose={handleCloseQrCodeDialog}>
           <DialogTitle>QR Code</DialogTitle>
           <DialogContent> 
@@ -231,42 +229,90 @@ export default function EventProfile() {
             <Button onClick={handleCloseQrCodeDialog}>Close</Button>
           </DialogActions>
         </Dialog>
+ 
 
-        <Box mt={4}>
-        <TextField
-          label="Redemption Code"
-          variant="outlined"
-          value={redemptionCode}
-          onChange={(e) => setRedemptionCode(e.target.value)}
+        <ApexChart
+            options={{
+              chart: {
+                type: 'bar',
+                height: 380,
+              },
+              plotOptions: {
+                bar: {
+                  barHeight: '100%',
+                  distributed: true,
+                  horizontal: true,
+                  dataLabels: {
+                    position: 'bottom'
+                  },
+                }
+              },
+
+
+              dataLabels: {
+                enabled: true,
+                textAnchor: 'start',
+                style: {
+                  colors: ['#fff']
+                },
+                formatter: function (val, opt) {
+                  return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
+                },
+                offsetX: 0,
+                dropShadow: {
+                  enabled: true
+                }
+              },
+              
+              xaxis: {
+                categories: chartData.categories,
+              },
+              yaxis: {
+                labels: {
+                  show: false
+                }
+              },
+              title: {
+                text: activeEvent.event_name,
+                align: 'center',
+                floating: true
+            },
+            }}
+            series={[
+              {
+                data: chartData.points,
+              },
+            ]}
+          />
+        
+
+        {user !== undefined && user.is_superuser && (
+
+          <Box>
+          <Typography variant='h3' align='center' color='text.secondary' sx={{ mt: 5 }}>
+            Admin Tools
+          </Typography>
+          <TextField 
+            label="Create Score Code"
+            variant="outlined"
+            type="number"
+            value={inputScore}
+            onChange={(e) => setInputScore(e.target.value)}
+          />
+          <Button variant="contained" align='center' onClick={createNewScoreCode}>
+            Submit Score
+          </Button>
+
+
+          
+   
+          
+        <TeamSearch 
+          activeEvent={activeEvent}
+          onTeamSelection={handleTeamSelection}
         />
-
-        <Select
-          label="Select Team"
-          value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-        >
-          {teamScores.map((team) => (
-            <MenuItem key={team.teamId} value={team.teamId}>
-              {team.teamDetails.team_name}
-            </MenuItem>
-          ))}
-        </Select>
-
-        <Button variant="contained" onClick={handleRedemption}>
-          Redeem
-        </Button>
-      </Box>
-
-      <List>
-        {teamScores.map((team_score) => (
-          <ListItem key={team_score.uuid}>
-            <ListItemText
-              primary={`${team_score.teamDetails.team_name}`}
-              secondary={`Score: ${team_score.score}`}
-            />
-          </ListItem>
-        ))}
-      </List>
+        </Box>
+        )}
       </Container>
     </main>
   )

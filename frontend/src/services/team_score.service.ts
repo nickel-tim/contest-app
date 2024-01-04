@@ -4,6 +4,28 @@ import { TeamScore } from '../models/team_score'
 const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
 class TeamScoreService {
+    async registerTeamScore(teamId: string, eventId: string): Promise<TeamScore> {
+        console.log('in register', teamId, eventId)
+        try {
+          const response = await axios.post(API_URL + 'team_scores', {
+            teamId: teamId,
+            eventId: eventId,
+            score: 0
+          });
+
+          return response.data;
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 400) {
+            // Handle the specific error condition (e.g., display a popup)
+            alert('Team is already registered for the event.');
+          } else {
+            // Handle other errors or rethrow the error
+            console.error('Error registering team score:', error);
+            throw error;
+        }
+      }
+    }
+
     async getTeamScoreForTeam(teamId: string): Promise<Array<TeamScore>> {
       const response = await axios.get(API_URL + `team_scores/team/${teamId}`)
       return response.data

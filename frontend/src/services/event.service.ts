@@ -6,6 +6,11 @@ const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
 
 class EventService {
+    async registerEvent(eventName: string): Promise<Event> {
+      const response = await axios.post(API_URL + `events/${eventName}`)
+      return response.data
+    }
+
     async getEvent(eventId: string): Promise<Event> {
       const response = await axios.get(API_URL + `events/${eventId}`)
       return response.data

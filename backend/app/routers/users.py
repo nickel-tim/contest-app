@@ -73,8 +73,7 @@ async def update_profile(
     update_data = update.model_dump(
         exclude={"is_active", "is_superuser"}, exclude_unset=True
     )
-    print('AAAAAAA')
-    print(update_data)
+
     try:
         if update_data["password"]:
             update_data["hashed_password"] = get_hashed_password(
@@ -85,8 +84,7 @@ async def update_profile(
         pass
     current_user = current_user.model_copy(update=update_data)
 
-    print('BBBBB')
-    print(update_data)
+
     try:
         await current_user.save()
         return current_user

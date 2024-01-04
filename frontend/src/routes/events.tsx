@@ -12,14 +12,27 @@ import {
   Grid,
   Link,
   Typography,
+  TextField, 
+
 } from '@mui/material'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import eventService from '../services/event.service'
+import { useAuth } from '../contexts/auth'
 
 export default function Events() {
-  const [globalEvents, setGlobalEvents] = useState([]); // Add state for teams
-  const formatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 })
+  const [globalEvents, setGlobalEvents] = useState([]);
+  const [inputName, setInputName] = useState('');
+
+  const { user } = useAuth()
+
+
+
+  const createNewEvent = async () => {
+    console.log('CERATE EVENT', inputName)
+    eventService.registerEvent(inputName)
+    window.location.reload()
+  }
 
   // Fetch teams on component mount
   useEffect(() => {
@@ -60,7 +73,7 @@ export default function Events() {
         </Box>
         <Grid container spacing={4}>
           {globalEvents.map((event) => (
-            <Grid item key={event.title} xs={12} sm={6} md={4}>
+            <Grid item key={event.uuid} xs={12} sm={6} md={4}>
              <NavLink to={`/event_profile?eventId=${event.uuid}`} style={{ textDecoration: 'none' }}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <CardMedia
@@ -85,7 +98,27 @@ export default function Events() {
             </Grid>
           ))}
         </Grid>
-      </Container>
+
+      {user !== undefined && user.is_superuser && (
+
+      <Box>
+      <Typography variant='h3' align='center' color='text.secondary' sx={{ mt: 5 }}>
+        Admin Tools
+      </Typography>
+      <TextField 
+        label="Create New Event"
+        variant="outlined"
+        value={inputName}
+        onChange={(e) => setInputName(e.target.value)}
+      />
+      <Button variant="contained" align='center' onClick={createNewEvent}>
+        Create Event
+      </Button>
+      </Box>
+      )}
+
+    </Container>
+
     </main>
   )
 }
