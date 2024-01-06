@@ -1,5 +1,6 @@
 from typing import List, Optional, Any
 from uuid import UUID
+import random 
 
 from fastapi import APIRouter, HTTPException, Body, Depends
 from pymongo import errors
@@ -16,13 +17,19 @@ router = APIRouter()
 @router.post("/{event_name}", response_model=schemas.Event)
 async def register_event(
     event_name: str,
+    color: str = Body(None)
 ):
     print('REGISTER EVENT', event_name)
     """
     Register a new user.
     """
+    if color == None:
+        color = '#' + hex(random.randrange(0, 2**24))[2:].zfill(6)
+
     event = models.Event(
         event_name=event_name,
+        color = color,
+
     )
     try:
         await event.create()

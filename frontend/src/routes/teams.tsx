@@ -156,7 +156,7 @@ export default function Teams() {
           {teams.map((team) => (
             <Grid item key={team.uuid} xs={12} sm={6} md={4}>
              <NavLink to={`/team_profile?teamId=${team.uuid}`} style={{ textDecoration: 'none' }}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}  style={{backgroundColor: `${team.color}6f`}}>
                 <CardMedia
                   component='img'
                   sx={{

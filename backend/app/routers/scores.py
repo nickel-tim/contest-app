@@ -99,7 +99,7 @@ async def get_user_scores_for_event(
     scores_list = [models.Score(userId=user_id, points=points) for user_id, points in user_points.items()]
 
     if not scores:
-        raise HTTPException(status_code=404, detail="Score not found")
+        scores_list=[]
     return scores_list
 
 @router.get("/user/{userId}", response_model=List[schemas.Score])

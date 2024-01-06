@@ -13,6 +13,7 @@ import {
   Toolbar,
   Tooltip,
   Typography,
+  Grid,
   TextField,
   List,
   ListItem,
@@ -76,40 +77,45 @@ export default function TeamSearch(props) {
 
 
   return (
-    <Box mt={4}>
-
+    <Box mt={4} display="flex" flexDirection="column" alignItems="flex-start">
     <form onSubmit={handleSearch}>
-        <TextField
-        id="search-bar"
-        className="text"
-        onChange={(e) => setSearchQuery(e.target.value)}
-        label="Enter a team name"
-        variant="outlined"
-        placeholder="Search..."
-        size="small"
-        />
+      <Grid container spacing={4} alignItems="center">
+        <Grid item xs={8}>
+          <TextField
+            id="search-bar"
+            className="text"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            label="Enter a team name"
+            variant="outlined"
+            placeholder="Search..."
+            size="small"
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <Button
+            onClick={handleTeamSelection}
+            disabled={!selectedTeam}
+            fullWidth
+          >
+            Add to event
+          </Button>
+        </Grid>
+      </Grid>
     </form>
-
     <List>
       {searchResults.map((team) => (
-          <ListItem
+        <ListItem
           key={team.uuid}
           button
           selected={selectedTeam === team.uuid}
           onClick={() => setSelectedTeam(team.uuid)}
-          >
-            <ListItemText primary={team.team_name} />
-          </ListItem>
-      ))} 
-      </List> 
-      <Button
-        onClick={handleTeamSelection}
-        disabled={!selectedTeam} 
-      >
-      Add to event
-      </Button>
-
-    </Box>
+        >
+          <ListItemText primary={team.team_name} />
+        </ListItem>
+      ))}
+    </List>
+  </Box>
   )
 }
 

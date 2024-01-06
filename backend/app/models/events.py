@@ -15,6 +15,7 @@ class Event(Document):
     is_active: bool = False
     participating_teams: Optional[List[UUID]] = []
     participating_users: Optional[List[UUID]] = []
+    color: str = None
 
     class Settings:
         indexes = [

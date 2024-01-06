@@ -5,4 +5,5 @@ export interface Event {
     participating_teams?: string[]
     is_active?: boolean
     picture?: string
+    color?: string
   }

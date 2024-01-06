@@ -11,6 +11,7 @@ class EventBase(BaseModel):
 
     event_name: Optional[str] = None
     participating_teams: Optional[List[str]]
+    color: Optional[str] = None
 
 
 class PrivateEventBase(EventBase):

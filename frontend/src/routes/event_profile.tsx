@@ -25,6 +25,8 @@ import {
 } from '@mui/material'
 
 import { NavLink, useNavigate } from 'react-router-dom'
+import { AxiosError } from 'axios'
+import { useSnackBar } from '../contexts/snackbar'
 
 
 import { useEffect, useState } from 'react'
@@ -36,6 +38,7 @@ import scoreService from '../services/score.service'
 import { useAuth } from '../contexts/auth'
 import { ApexChart } from '../components/ApexChart'
 import { TeamSearch } from '../components/TeamSearch'
+import EventProfileForm from '../components/EventProfile'
 
 
 export default function EventProfile() {
@@ -47,6 +50,8 @@ export default function EventProfile() {
   const [openQrCodeDialog, setOpenQrCodeDialog] = useState(false);
   const { user } = useAuth()
   const [showTeamChart, setShowTeamChart] = useState(true);
+  const [updateEventDialog, setUpdateEventDialog] = useState(false);
+  const { showSnackBar } = useSnackBar()
 
   const formatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 });
 
@@ -79,6 +84,38 @@ export default function EventProfile() {
       console.error('Error fetching events:', error);
     }
   }
+
+
+  const handleUpdateEvent = async (data: Event) => {
+    let updatedEvent: Event
+    try {
+      console.log(data)
+      updatedEvent = await eventService.updateEvent(activeEvent.uuid, data)
+      showSnackBar('Event created successfully.', 'success')
+      window.location.reload()
+
+      // if (data.uuid == '') {
+      //   updatedTeam = await teamService.registerTeam(data)
+      // } else  {
+      //   updatedTeam = await teamService.updateTeam(data.uuid, data)
+      //   showSnackBar('Team updated successfully.', 'success')
+
+      // }
+    } catch (error) {
+      let msg
+      if (
+        error instanceof AxiosError &&
+        error.response &&
+        typeof error.response.data.detail == 'string'
+      )
+        msg = error.response.data.detail
+      else if (error instanceof Error) msg = error.message
+      else msg = String(error)
+      showSnackBar(msg, 'error')
+    }
+
+  }
+
 
 
   const handleOpenQrCodeDialog = () => {
@@ -228,6 +265,15 @@ export default function EventProfile() {
   }, []);
 
 
+  const openUpdateEventDialog = async () => {
+    setUpdateEventDialog(true)
+  }
+
+  const closeUpdateEventDialog = async () => {
+    setUpdateEventDialog(false)
+  }
+
+
   return (
     <main>
       <Box
@@ -373,6 +419,23 @@ export default function EventProfile() {
             ]}
           />
           )}
+
+
+        <Dialog open={updateEventDialog} onClose={closeUpdateEventDialog}>
+          <DialogTitle>Update Event</DialogTitle>
+          <DialogContent> 
+            <EventProfileForm
+                eventProfile={activeEvent}
+                onSubmit={handleUpdateEvent}
+                allowDelete={false}></EventProfileForm> 
+
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeUpdateEventDialog}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+
         {user !== undefined && user.is_superuser && (
 
           <Box>
@@ -386,13 +449,15 @@ export default function EventProfile() {
             value={inputScore}
             onChange={(e) => setInputScore(e.target.value)}
           />
-          <Button variant="contained" align='center' onClick={createNewScoreCode}>
+          <Button sx={{ mt: 1 , left:10 }} variant="contained" align='center' onClick={createNewScoreCode}>
             Submit Score
           </Button>
 
-
-          
-   
+        <Box>
+          <Button  sx={{ mt: 2 }} variant="contained" align='center' onClick={openUpdateEventDialog}>
+          Update Event
+          </Button>
+        </Box>
           
         <TeamSearch 
           activeEvent={activeEvent}

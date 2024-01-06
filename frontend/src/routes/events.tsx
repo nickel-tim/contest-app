@@ -74,7 +74,7 @@ export default function Events() {
           {globalEvents.map((event) => (
             <Grid item key={event.uuid} xs={12} sm={6} md={4}>
              <NavLink to={`/event_profile?eventId=${event.uuid}`} style={{ textDecoration: 'none' }}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}  style={{backgroundColor: `${event.color}6f`}}>
                 <CardMedia
                   component='img'
                   sx={{

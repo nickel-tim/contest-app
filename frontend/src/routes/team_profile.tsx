@@ -211,7 +211,7 @@ export default function TeamProfile() {
           {teamScores.map((team_score) => (
             <Grid item key={team_score.uuid} xs={12} sm={6} md={4}>
              <NavLink to={`/event_profile?eventId=${team_score.eventId}`} style={{ textDecoration: 'none' }}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}   style={{backgroundColor: `${team_score.eventDetails.color}6f`}}>
                 <CardMedia
                   component='img'
                   sx={{
