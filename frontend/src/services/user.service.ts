@@ -19,6 +19,16 @@ class UserService {
     return response.data
   }
 
+  async getUser(userId: string): Promise<User> {
+    const response = await axios.get(API_URL + `users/get_user`, {
+      params: {
+        userId: userId
+      }
+    }
+    )
+    return response.data
+  }
+
   async getUsers(): Promise<Array<User>> {
     const response = await axios.get(API_URL + 'users')
     return response.data

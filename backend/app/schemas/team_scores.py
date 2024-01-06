@@ -11,6 +11,7 @@ class TeamScoreBase(BaseModel):
 
     teamId: str = None
     eventId: str = None
+    userId: str = None
     score: int = 0
 
 

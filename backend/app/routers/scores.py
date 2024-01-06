@@ -1,7 +1,7 @@
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from uuid import UUID
-
-from fastapi import APIRouter, HTTPException, Body, Depends
+from collections import defaultdict
+from fastapi import APIRouter, HTTPException, Body, Depends, Query
 from pymongo import errors
 from beanie.exceptions import RevisionIdWasChanged
 
@@ -24,7 +24,8 @@ async def register_code(
     """
     score = models.Score(
         eventId=eventId,
-        points=points
+        points=points,
+        userId=''
     )
     try:
         await score.create()
@@ -46,6 +47,8 @@ async def get_scores(
     # admin_user: models.Score = Depends(get_current_active_superuser),
 ):
     scores = await models.Score.find_all().skip(offset).limit(limit).to_list()
+    if scores is None:
+        raise HTTPException(status_code=404, detail="Score not found")
     return scores
 
 @router.get("/valid", response_model=List[schemas.Score])
@@ -79,6 +82,48 @@ async def get_score_for_event(
         raise HTTPException(status_code=404, detail="Score not found")
     return scores
 
+@router.get("/event_users", response_model=List[schemas.Score])
+async def get_user_scores_for_event(
+    eventId: str = Query(...),
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    scores = await models.Score.find({ "eventId": eventId, "is_active": False}).to_list()
+
+    user_points = defaultdict(int)
+
+    for score in scores:
+        user_id = score.userId
+        points = score.points
+        user_points[user_id] += points
+
+    scores_list = [models.Score(userId=user_id, points=points) for user_id, points in user_points.items()]
+
+    if not scores:
+        raise HTTPException(status_code=404, detail="Score not found")
+    return scores_list
+
+@router.get("/user/{userId}", response_model=List[schemas.Score])
+async def get_score_for_user(
+    userId: str,
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    scores = await models.Score.find({ "userId": userId }).to_list()
+    if scores is None:
+        raise HTTPException(status_code=404, detail="Score not found")
+    return scores
+
+
+@router.get("/event_user", response_model=List[schemas.Score])
+async def get_score_for_event_user(
+    eventId: str = Body(None),
+    userId: str = Body(None)
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    scores = await models.Score.find({ "userId": userId, "eventId": eventId }).to_list()
+    if scores is None:
+        raise HTTPException(status_code=404, detail="Score not found")
+    return scores
+
 
 @router.get("/valid/event/{eventId}", response_model=List[schemas.Score])
 async def get_valid_score_for_event(
@@ -94,14 +139,15 @@ async def get_valid_score_for_event(
 @router.get("/use_code/", response_model=schemas.Score)
 async def use_code(
     scoreId: UUID,
-    teamId: UUID
+    teamId: UUID,
+    userId: str
     # admin_user: models.User = Depends(get_current_active_superuser)
 ):
     scores = await models.Score.find_one({ "uuid": scoreId })
     if not scores.is_active:
-        scores.points = 0
         return scores
     scores.is_active = False
+    scores.userId = userId
     team_score = await models.TeamScore.find_one({ "eventId": str(scores.eventId) , "teamId": str(teamId)})
     team_score.score += scores.points
     try:

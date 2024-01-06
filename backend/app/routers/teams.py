@@ -1,5 +1,7 @@
 from typing import List, Optional, Any
 from uuid import UUID
+import random
+
 
 from fastapi import APIRouter, HTTPException, Body, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,14 +18,21 @@ router = APIRouter()
 
 @router.post("", response_model=schemas.Team)
 async def register_team(
-    team_name: str = Body(None),
+    team_name: str = Body(...),
+    color: str = Body(...),
+
 ):
     """
-    Register a new user.
+    Register a new team.
     """
+    if color == None:
+        color = '#' + hex(random.randrange(0, 2**24))[2:].zfill(6)
+
     team = models.Team(
-        team_name=team_name,
+        team_name = team_name,
+        color = color,
     )
+
     try:
         await team.create()
         return team
@@ -64,8 +73,11 @@ async def update_team(
     current_user : models.User, optional
         the current superuser, by default Depends(get_current_active_superuser)
     """
+    print('UPDATE', update)
+    print('teamid', teamid)
     team = await models.Team.find_one({"uuid": teamid})
-    
+
+    print('TEAM', team)
     team = team.model_copy(update=update.model_dump(exclude_unset=True))
     try:
         await team.save()
@@ -116,9 +128,6 @@ async def delete_team(
 
 @router.get("/search/{team_name}", response_model=List[schemas.Team])
 async def search_teams(team_name: str):
-    print('IN SERACH', team_name)
     teams_data = await get_teams()
-    print('IN SERACH ALL', teams_data)
-
     filtered_teams = [team for team in teams_data if team_name.lower() in team.team_name.lower()]
     return filtered_teams

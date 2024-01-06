@@ -19,6 +19,7 @@ router = APIRouter()
 async def register_team_score(
     teamId: str = Body(None),
     eventId: str = Body(None),
+    userId: str = Body(None),
     score: Optional[int] = 0,
 ):
     """
@@ -36,6 +37,7 @@ async def register_team_score(
     teamScore = models.TeamScore(
         teamId=teamId,
         eventId=eventId,
+        userId=userId,
         score=score
     )
     try:
@@ -114,6 +116,33 @@ async def get_team_score_for_team(
         raise HTTPException(status_code=404, detail="TeamScore not found")
     return teamScores
 
+
+
+@router.get("/user/{userId}", response_model=List[schemas.TeamScore])
+async def get_team_score_for_user(
+    userId: str,
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    """
+    Get TeamScore Info
+
+    ** Restricted to superuser **
+
+    Parameters
+    ----------
+    teamId : UUID
+        the team's UUID
+
+    Returns
+    -------
+    schemas.TeamScore
+        TeamScore info
+    """
+    teamScores = await models.TeamScore.find({ "userId": userId }).to_list()
+    if teamScores is None:
+        raise HTTPException(status_code=404, detail="TeamScore not found")
+    return teamScores
+
 @router.get("/event/{eventId}", response_model=List[schemas.TeamScore])
 async def get_team_score_for_event(
     eventId: str,
@@ -184,6 +213,23 @@ async def delete_team_score_for_team(
 ):
     try:
         team_scores = await models.TeamScore.find({"teamId": teamId}).to_list()
+        for team_score in team_scores:
+            await team_score.delete()
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if team_scores == 0:
+        raise HTTPException(status_code=404, detail="TeamScore not found")
+    return team_scores
+
+
+@router.delete("/user/{userId}", response_model=List[schemas.TeamScore])
+async def delete_team_score_for_user(
+    userId: str,
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    try:
+        team_scores = await models.TeamScore.find({"userId": userId}).to_list()
         for team_score in team_scores:
             await team_score.delete()
         

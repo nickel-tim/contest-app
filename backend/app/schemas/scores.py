@@ -16,6 +16,7 @@ class PrivateScoreBase(ScoreBase):
     Shared Score properties. Visible only by admins and self.
     """
     eventId: Optional[str] = None
+    userId: Optional[str] = None
     is_active: Optional[bool] = True
 
 

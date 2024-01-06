@@ -13,6 +13,7 @@ class UserBase(BaseModel):
     last_name: Optional[str] = None
     picture: Optional[str] = None
     teams: Optional[List[str]] = []
+    color: Optional[str] = []
 
 
 class PrivateUserBase(UserBase):

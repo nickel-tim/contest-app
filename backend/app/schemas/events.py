@@ -38,5 +38,4 @@ class Event(PrivateEventBase):
     Should only be returned to admins or self.
     """
 
-    id: PydanticObjectId = Field()
     uuid: UUID

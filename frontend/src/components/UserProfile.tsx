@@ -11,12 +11,14 @@ import {
   Grid,
   IconButton,
   TextField,
+  Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/auth'
 import { useSnackBar } from '../contexts/snackbar'
+import ColorPicker from '../components/ColorPicker';
 import userService from '../services/user.service'
 import teamService from '../services/team.service'
 import { GoogleIcon } from './LoginForm'
@@ -35,6 +37,7 @@ export default function UserProfile(props: UserProfileProps) {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<User>({
     defaultValues: userProfile,
@@ -69,6 +72,10 @@ export default function UserProfile(props: UserProfileProps) {
   }, []);
 
 
+
+  const onColorChange = async (updatedColor: string) => {
+    setValue('color', updatedColor);
+  };
 
   useEffect(() => {
     reset(userProfile)
@@ -151,7 +158,7 @@ export default function UserProfile(props: UserProfileProps) {
           />
         </IconButton>
 
-        <Box
+        <Box 
           component='form'
           onSubmit={handleSubmit(onSubmit)}
           sx={{ mt: 3 }}
@@ -273,7 +280,22 @@ export default function UserProfile(props: UserProfileProps) {
                 </Button>
               </DialogActions>
             </Dialog>
-
+            <Box
+              display='flex'
+              flexDirection='column'
+              justifyContent='center'
+              alignItems='center'
+              width='100%'
+              sx={{ mt: 3 }}
+            >
+              <Grid item xs={12}>
+                <Typography color='text.secondary'>Select Your Color</Typography>
+              </Grid>
+              <Grid item xs={12}>
+                {/* <input type='hidden' {...register('color')} /> */}
+                <ColorPicker onColorChange={onColorChange} initialColor={userProfile.color}/>
+              </Grid>
+            </Box> 
             
             {currentUser?.is_superuser && (
               <>

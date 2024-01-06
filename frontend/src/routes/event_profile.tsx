@@ -31,6 +31,7 @@ import { useEffect, useState } from 'react'
 import eventService from '../services/event.service'
 import teamScoreService from '../services/team_score.service'
 import teamService from '../services/team.service'
+import userService from '../services/user.service'
 import scoreService from '../services/score.service'
 import { useAuth } from '../contexts/auth'
 import { ApexChart } from '../components/ApexChart'
@@ -40,10 +41,12 @@ import { TeamSearch } from '../components/TeamSearch'
 export default function EventProfile() {
   const [activeEvent, setActiveEvent] = useState([]);
   const [teamScores, setTeamScores] = useState([]);
+  const [userScores, setUserScores] = useState([]);
   const [inputScore, setInputScore] = useState('');
   const [qrCodeData, setQrCodeData] = useState('');
   const [openQrCodeDialog, setOpenQrCodeDialog] = useState(false);
   const { user } = useAuth()
+  const [showTeamChart, setShowTeamChart] = useState(true);
 
   const formatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 });
 
@@ -159,7 +162,10 @@ export default function EventProfile() {
         // Replace with your API call to fetch teams
         const event = await eventService.getEvent(eventId);
         const team_scores = await teamScoreService.getTeamScoreForEvent(eventId);
+
+        const user_scores = await scoreService.getUserScoresForEvent(eventId)
         const sortedTeamScores = team_scores.sort((a, b) => b.score - a.score);
+        const sortedUserScores = user_scores.sort((a, b) => b.points - a.points);
 
         // Fetch team details for each team score
         const teamScoresWithDetails = await Promise.all(
@@ -171,8 +177,20 @@ export default function EventProfile() {
             };
           })
         );
-        setTeamScores(teamScoresWithDetails);
-        setActiveEvent(event);
+
+        const userScoresWithDetails = await Promise.all(
+          sortedUserScores.map(async (user_score) => {
+            const userDetails = await userService.getUser(user_score.userId);
+            return {
+              ...user_score,
+              userDetails,
+            };
+          })
+        );
+
+        setTeamScores(teamScoresWithDetails)
+        setUserScores(userScoresWithDetails)
+        setActiveEvent(event)
 
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -182,16 +200,33 @@ export default function EventProfile() {
   }, [])
 
   const handleTeamSelection = (selectedTeam:string) => {
-    teamScoreService.registerTeamScore(selectedTeam, activeEvent.uuid)
+    teamScoreService.registerTeamScore(selectedTeam, activeEvent.uuid, user.uuid)
     window.location.reload()
   };
 
 
-  const chartData = {
+  const teamChartData = {
     categories: teamScores.map((team_score) => team_score.teamDetails.team_name),
     points: teamScores.map((team_score) => team_score.score),
-    
+    colors: teamScores.map((team_score) => team_score.teamDetails.color),
   };
+  const userChartData = {
+    categories: userScores.map((user_score) => user_score.userDetails.first_name),
+    points: userScores.map((user_score) => user_score.points),
+    colors: userScores.map((user_score) => user_score.userDetails.color),
+
+  };
+
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setShowTeamChart((prev) => !prev);
+      
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
 
   return (
     <main>
@@ -230,6 +265,7 @@ export default function EventProfile() {
           </DialogActions>
         </Dialog>
  
+        {showTeamChart ? (
 
         <ApexChart
             options={{
@@ -247,8 +283,6 @@ export default function EventProfile() {
                   },
                 }
               },
-
-
               dataLabels: {
                 enabled: true,
                 textAnchor: 'start',
@@ -263,9 +297,8 @@ export default function EventProfile() {
                   enabled: true
                 }
               },
-              
               xaxis: {
-                categories: chartData.categories,
+                categories: teamChartData.categories,
               },
               yaxis: {
                 labels: {
@@ -273,19 +306,73 @@ export default function EventProfile() {
                 }
               },
               title: {
-                text: activeEvent.event_name,
+                text: "Team Scores",
                 align: 'center',
                 floating: true
             },
+              colors: teamChartData.colors 
             }}
             series={[
               {
-                data: chartData.points,
+                data: teamChartData.points,
               },
             ]}
           />
-        
+          ) : (
+          <ApexChart
+            options={{
+              chart: {
+                type: 'bar',
+                height: 380,
+              },
+              plotOptions: {
+                bar: {
+                  barHeight: '100%',
+                  distributed: true,
+                  horizontal: true,
+                  dataLabels: {
+                    position: 'bottom'
+                  },
+                }
+              },
+              dataLabels: {
+                enabled: true,
+                textAnchor: 'start',
+                style: {
+                  colors: ['#fff']
+                },
+                formatter: function (val, opt) {
+                  return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
+                },
+                offsetX: 0,
+                dropShadow: {
+                  enabled: true
+                }
+              },
+              xaxis: {
+                categories: userChartData.categories,
+              },
+              yaxis: {
+                labels: {
+                  show: false
+                }
+              },
+              title: {
+                text: "Player Scores",
+                align: 'center',
+                floating: true
+            },            
+              colors: userChartData.colors 
 
+            }}
+            series={[
+              {
+                data: userChartData.points,
+              },
+
+            ]}
+          />
+          )}
         {user !== undefined && user.is_superuser && (
 
           <Box>

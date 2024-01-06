@@ -29,7 +29,6 @@ export default function Events() {
 
 
   const createNewEvent = async () => {
-    console.log('CERATE EVENT', inputName)
     eventService.registerEvent(inputName)
     window.location.reload()
   }

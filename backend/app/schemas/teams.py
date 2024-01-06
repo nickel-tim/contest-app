@@ -9,7 +9,8 @@ class TeamBase(BaseModel):
     Shared Team properties. Visible by anyone.
     """
 
-    team_name: Optional[str] = None
+    team_name: Optional[str]
+    color: Optional[str]
 
 
 class PrivateTeamBase(TeamBase):
@@ -37,5 +38,4 @@ class Team(PrivateTeamBase):
     Should only be returned to admins or self.
     """
 
-    id: PydanticObjectId = Field()
     uuid: UUID

@@ -1,7 +1,8 @@
 from typing import List, Optional, Any
 from uuid import UUID
+import random
 
-from fastapi import APIRouter, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException, Body, Depends, Query
 from pymongo import errors
 from pydantic.networks import EmailStr
 from beanie.exceptions import RevisionIdWasChanged
@@ -22,16 +23,23 @@ async def register_user(
     email: EmailStr = Body(...),
     first_name: str = Body(None),
     last_name: str = Body(None),
+    color: str = Body(None),
+
 ):
     """
     Register a new user.
     """
+    if color == None:
+        color = '#' + hex(random.randrange(0, 2**24))[2:].zfill(6)
+
     hashed_password = get_hashed_password(password)
     user = models.User(
         email=email,
         hashed_password=hashed_password,
         first_name=first_name,
         last_name=last_name,
+        color = color,
+
     )
     try:
         await user.create()
@@ -60,6 +68,20 @@ async def get_profile(
     Get current user.
     """
     return current_user
+
+
+@router.get("/get_user", response_model=schemas.User)
+async def get_team(
+    userId: UUID = Query(...),
+    # admin_user: models.User = Depends(get_current_active_superuser)
+):
+    user = await models.User.find_one({"uuid": userId})
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.first_name:
+        user.first_name = 'No name'
+    return user
 
 
 @router.patch("/me", response_model=schemas.User)

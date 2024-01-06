@@ -10,6 +10,7 @@ class TeamScore(Document):
     uuid: UUID = Field(default_factory=uuid4)
     teamId: str = None
     eventId: str = None
+    userId: str = None
     score: int = 0
     
 

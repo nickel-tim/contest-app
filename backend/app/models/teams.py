@@ -9,6 +9,7 @@ from pymongo import IndexModel
 class Team(Document):
     uuid: UUID = Field(default_factory=uuid4)
     team_name: str = None
+    color: str = None
 
     members: Optional[List[UUID]] = []
 

@@ -17,6 +17,7 @@ class User(Document):
     is_active: bool = True
     is_superuser: bool = False
     teams: Optional[List[str]] = []
+    color: Optional[str] = None
 
     class Settings:
         # Set unique index on uuid here instead of using Indexed

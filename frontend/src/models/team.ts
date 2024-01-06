@@ -4,6 +4,7 @@ export interface Team {
     members?: string[]
     is_active?: boolean
     picture?: string
+    color?: string
 
   }
   

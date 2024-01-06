@@ -10,6 +10,7 @@ class Score(Document):
     uuid: UUID = Field(default_factory=uuid4)
     is_active: bool = True
     eventId: str = None
+    userId: str = None
     points: int = 0
 
     class Settings:

@@ -63,6 +63,12 @@ export default function TopMenuBar() {
         )}
 
         {user !== undefined &&  (
+          <Button component={NavLink} to='/teams' sx={{ color: '#fff' }}>
+            Teams
+          </Button>
+        )}
+
+        {user !== undefined &&  (
           <Button component={NavLink} to='/events' sx={{ color: '#fff' }}>
             Events
           </Button>

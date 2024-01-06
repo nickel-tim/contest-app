@@ -32,7 +32,8 @@ import {
   import teamScoreService from '../services/team_score.service'
   import teamService from '../services/team.service'
   import scoreService from '../services/score.service'
-  
+  import { useAuth } from '../contexts/auth'
+
 
 
 
@@ -46,6 +47,7 @@ import {
     const [openTeamDialog, setOpenTeamDialog] = useState(false);
     const navigate = useNavigate();
     const qrReaderRef = useRef(null);
+    const { user } = useAuth()
 
 
     
@@ -63,8 +65,6 @@ import {
     useEffect(() => {
       // Cleanup function to stop the QR scanner when the component is unmounted or qrCodeData is set
       return () => {
-
-        console.log(qrReaderRef)
         if (qrReaderRef.current) {
           qrReaderRef.current.stop();
         }
@@ -103,7 +103,7 @@ import {
         // Call your redemption function with redemptionCode and selectedTeam
         // For demonstration purposes, this is just a placeholder alert
         const team = await teamService.getTeam(selectedTeam)
-        const response = await scoreService.useCode(redemptionCode, selectedTeam);
+        const response = await scoreService.useCode(redemptionCode, selectedTeam, user.uuid);
 
         if (response.points == 0) {
             alert(`Score has already been used`);

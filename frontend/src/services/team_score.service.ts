@@ -4,12 +4,13 @@ import { TeamScore } from '../models/team_score'
 const API_URL = import.meta.env.VITE_BACKEND_API_URL
 
 class TeamScoreService {
-    async registerTeamScore(teamId: string, eventId: string): Promise<TeamScore> {
+    async registerTeamScore(teamId: string, eventId: string, userId: string): Promise<TeamScore> {
         console.log('in register', teamId, eventId)
         try {
           const response = await axios.post(API_URL + 'team_scores', {
             teamId: teamId,
             eventId: eventId,
+            userId: userId,
             score: 0
           });
 
@@ -28,6 +29,10 @@ class TeamScoreService {
 
     async getTeamScoreForTeam(teamId: string): Promise<Array<TeamScore>> {
       const response = await axios.get(API_URL + `team_scores/team/${teamId}`)
+      return response.data
+    }  
+    async getTeamScoreForUser(userId: string): Promise<Array<TeamScore>> {
+      const response = await axios.get(API_URL + `team_scores/user/${userId}`)
       return response.data
     }  
     async getTeamScoreForEvent(eventId: string): Promise<Array<TeamScore>> {
@@ -52,6 +57,10 @@ class TeamScoreService {
     } 
     async deleteTeamScoresForTeam(teamId: string) {
       const response = await axios.delete(API_URL + `team_scores/team/${teamId}`)
+      return response.data
+    }
+    async deleteTeamScoresForUser(userId: string) {
+      const response = await axios.delete(API_URL + `team_scores/user/${userId}`)
       return response.data
     }
     async deleteTeamScoresForEvent(eventId: string) {
